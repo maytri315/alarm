@@ -1,4 +1,3 @@
-# alarm
 Alarm Web Page
 This project is a feature-rich alarm web page with a playful and visually appealing design. The page includes an integrated digital clock, alarm functionality, snooze option, daily repeat settings, and custom alarm music upload.
 
