@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhai+2&family=Cabin+Sketch&family=Comic+Neue&family=Gloria+Hallelujah&family=Pacifico&display=swap" rel="stylesheet">
+    <title>Alarm Web Page</title>
+    <style>
+        body { 
+            margin: 0; 
+            font-family: 'Gloria Hallelujah', cursive; 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column;
+            background-color: #ffebcd; 
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ff69b4;
+            padding: 10px;
+            color: white;
+            font-family: 'Pacifico', cursive;
+            width: 100%;
+            position: relative;
+        }
+        .settings-icon {
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            cursor: pointer;
+        }
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background-color: #fff8dc;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+            width: 250px;
+            padding: 10px;
+        }
+        .container { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 100%; 
+            flex-grow: 1;
+        }
+        .left { 
+            width: 30%; 
+            padding: 20px; 
+            background-color: #fff8dc; 
+            border-right: 1px solid #ccc; 
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
+            height: 100%; 
+        }
+        .right { 
+            width: 70%; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        .alarm-set { 
+            margin-bottom: 20px; 
+        }
+        .btn { 
+            padding: 10px 20px; 
+            font-size: 1em; 
+            border: none; 
+            background-color: #ff69b4; 
+            color: white; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-family: 'Baloo Bhai 2', cursive; 
+        }
+        .clock { 
+            font-size: 4em; 
+            color: #ff69b4; 
+            font-family: 'Comic Neue', cursive; 
+        }
+        .note {
+            display: none;
+            font-size: 2em;
+            color: #ff69b4;
+            font-family: 'Cabin Sketch', cursive;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .snooze-btn, .wake-btn {
+            display: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            background-color: #ff69b4;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Baloo Bhai 2', cursive;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .snooze-btn {
+            top: 60%;
+        }
+        .wake-btn {
+            top: 70%;
+        }
+        .repeat-btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            background-color: #ff69b4;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Baloo Bhai 2', cursive;
+            display: none;
+            margin-left: 10px;
+        }
+        .alarm-time-display {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-family: 'Gloria Hallelujah', cursive;
+            color: #ff69b4;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Alarm Web Page</h1>
+        <img src="C:\Users\Admin\Downloads\icons8-music-1500.png" alt="Settings" class="settings-icon" onclick="toggleDropdown()">
+    </div>
+    <div class="container">
+        <div class="left">
+            <h1>Set Alarm</h1>
+            <div class="alarm-set">
+                <label for="alarm-time">Alarm Time:</label>
+                <input type="time" id="alarm-time">
+            </div>
+            <button class="btn" onclick="setAlarm()">Set Alarm</button>
+            <div id="alarmTimeDisplay" class="alarm-time-display"></div>
+            <button class="repeat-btn" id="repeat-btn" onclick="repeatAlarm()">Repeat Alarm</button>
+        </div>
+        <div class="right">
+            <div class="clock" id="clock"></div>
+        </div>
+    </div>
+    <div class="dropdown" id="dropdown">
+        <label for="alarm-music">Upload Alarm Music:</label>
+        <input type="file" id="alarm-music" accept="audio/*" class="upload">
+    </div>
+    <audio id="alarm-audio">
+        <source src="beep-beep.mp3" type="audio/mpeg">
+    </audio>
+    <div class="note" id="note">Beep Beep! Alarm!</div>
+    <button class="snooze-btn" id="snooze-btn" onclick="snoozeAlarm()">Snooze</button>
+    <button class="wake-btn" id="wake-btn" onclick="wakeUp()">I Woke Up</button>
+    <script>
+        let alarmTime = null;
+        let alarmTimeout = null;
+        let repeatAlarmInterval = null;
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function setAlarm() {
+            alarmTime = document.getElementById('alarm-time').value;
+            document.getElementById('alarmTimeDisplay').innerHTML = 'Alarm is set for ' + alarmTime;
+            document.getElementById('repeat-btn').style.display = 'inline-block';
+            const alarmMusic = document.getElementById('alarm-music').files[0];
+            if (alarmMusic) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const audio = document.getElementById('alarm-audio');
+                    audio.src = event.target.result;
+                };
+                reader.readAsDataURL(alarmMusic);
+            }
+            alert('Alarm set for ' + alarmTime);
+        }
+
+        function repeatAlarm() {
+            if (alarmTime) {
+                repeatAlarmInterval = setInterval(checkAlarm, 86400000);
+                alert('Alarm will repeat every day at ' + alarmTime);
+            } else {
+                alert('Please set an alarm time first.');
+            }
+        }
+
+        function checkAlarm() {
+            clearTimeout(alarmTimeout);
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            if (alarmTime === currentTime) {
+                triggerAlarm();
+            } else {
+                alarmTimeout = setTimeout(checkAlarm, 1000);
+            }
+        }
+
+        function triggerAlarm() {
+            const audio = document.getElementById('alarm-audio');
+            audio.play();
+            document.getElementById('note').style.display = 'block';
+            document.getElementById('snooze-btn').style.display = 'block';
+            document.getElementById('wake-btn').style.display = 'block';
+        }
+
+        function stopAlarm() {
+            const audio = document.getElementById('alarm-audio');
+            audio.pause();
+            audio.currentTime = 0;
+            document.getElementById('note').style.display = 'none';
+            document.getElementById('snooze-btn').style.display = 'none';
+            document.getElementById('wake-btn').style.display = 'none';
+            clearTimeout(alarmTimeout);
+        }
+
+        function snoozeAlarm() {
+            stopAlarm();
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 5);
+            alarmTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            alert('Alarm snoozed for 5 minutes.');
+            checkAlarm();
+        }
+
+        function wakeUp() {
+            stopAlarm();
+            alert('Alarm canceled.');
+            console.log('Alarm canceled');
+            document.getElementById('alarmTimeDisplay').innerText = ''; // Clear alarm display
+        }
+
+        // Initialize the clock display
+        function updateClock() {
+            const now = new Date();
+            const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            document.getElementById('clock').innerText = timeString;
+            setTimeout(updateClock, 1000); // Update every second
+        }
+
+        // Start the clock update when the page loads
+        updateClock();
+    </script>
+</body>
+</html>
